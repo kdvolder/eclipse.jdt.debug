@@ -98,6 +98,7 @@ public class JavaHotCodeReplaceManager implements IResourceChangeListener,
 	 * The class file extension
 	 */
 	private static final String CLASS_FILE_EXTENSION = "class"; //$NON-NLS-1$
+	public static final String DISABLE_HCR_LAUNCH_ATTRIBUTE = "disable.hcr"; //$NON-NLS-1$
 
 	/**
 	 * The list of <code>IJavaHotCodeReplaceListeners</code> which this hot code
@@ -425,6 +426,9 @@ public class JavaHotCodeReplaceManager implements IResourceChangeListener,
 				deregisterTarget(target);
 				continue;
 			}
+			if (!isHCREnabled(target)) {
+				continue;
+			}
 			// Make a local copy of the resources/names to swap so we can filter
 			// unloaded types on a per-target basis.
 			List<IResource> resourcesToReplace = new ArrayList<>(resources);
@@ -506,6 +510,15 @@ public class JavaHotCodeReplaceManager implements IResourceChangeListener,
 			JDIDebugPlugin.log(ms);
 		}
 		fDeltaCache.clear();
+	}
+
+	private boolean isHCREnabled(JDIDebugTarget target) {
+		ILaunch l = target.getLaunch();
+		if (l != null) {
+			boolean disabledByLaunch = "true".equals(l.getAttribute(DISABLE_HCR_LAUNCH_ATTRIBUTE)); //$NON-NLS-1$
+			return !disabledByLaunch;
+		}
+		return false;
 	}
 
 	/**
